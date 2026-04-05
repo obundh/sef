@@ -27,6 +27,7 @@ import type {
   MissionEvaluation,
   MissionId,
   MissionStatus,
+  PerformanceGrade,
   ScoreBreakdown,
   ScoreResult,
   Severity,
@@ -36,6 +37,54 @@ import type {
 
 const clamp = (value: number, min = 0, max = 100) =>
   Math.max(min, Math.min(max, Math.round(value)));
+
+function getPerformanceGrade(total: number): PerformanceGrade {
+  if (total >= 90) {
+    return {
+      tier: "S",
+      label: "매우 우수",
+      description: "핵심 병목이 잘 제어된 상위권 차폐실 설계입니다."
+    };
+  }
+
+  if (total >= 80) {
+    return {
+      tier: "A",
+      label: "우수",
+      description: "전반적으로 강한 설계이며 일부 세부 보완만 남아 있습니다."
+    };
+  }
+
+  if (total >= 70) {
+    return {
+      tier: "B",
+      label: "양호",
+      description: "기본 요구는 충족하지만 몇몇 병목 구간은 더 다듬을 수 있습니다."
+    };
+  }
+
+  if (total >= 60) {
+    return {
+      tier: "C",
+      label: "보완 필요",
+      description: "설계 방향은 맞지만 취약 구간이 아직 총점을 크게 제한합니다."
+    };
+  }
+
+  if (total >= 50) {
+    return {
+      tier: "D",
+      label: "취약",
+      description: "부분 개선만으로는 부족하고 핵심 병목을 먼저 손봐야 합니다."
+    };
+  }
+
+  return {
+    tier: "E",
+    label: "매우 취약",
+    description: "현재 설계는 차폐 경계가 약해 큰 폭의 재구성이 필요합니다."
+  };
+}
 
 const protectedOpeningPlans = new Set(["honeycomb-one", "honeycomb-two", "wbc-vent-one"]);
 const singlePointBondingPlans = new Set([
@@ -692,6 +741,7 @@ export function scoreDesign(
 
   return {
     total,
+    performanceGrade: getPerformanceGrade(total),
     conceptualBands,
     breakdown,
     hotspots,

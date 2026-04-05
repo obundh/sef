@@ -44,8 +44,8 @@ interface ResultPanelProps {
 
 const breakdownLabels: Record<keyof ScoreBreakdown, string> = {
   wall: "벽체 차폐 성능",
-  openingControl: "개구부 / 환기구 제어 수준",
-  entryControl: "관통부 / POE 제어 수준",
+  openingControl: "개구부 / 환기 제어",
+  entryControl: "관통부 / POE 제어",
   panelJointIntegrity: "패널 조인트 건전성",
   doorIntegrity: "출입문 건전성",
   bondingQuality: "본딩 / 접지 품질"
@@ -65,7 +65,9 @@ function getEntrySummary(design: SimulatorDesign) {
     return baseLabel;
   }
 
-  return design.cablePlan === "none" ? addonLabels.join(" + ") : [baseLabel, ...addonLabels].join(" + ");
+  return design.cablePlan === "none"
+    ? addonLabels.join(" + ")
+    : [baseLabel, ...addonLabels].join(" + ");
 }
 
 function BreakdownRow({ label, score }: { label: string; score: number }) {
@@ -107,6 +109,43 @@ function ValueBadge({ rating }: { rating: ValueAssessment["rating"] }) {
   return <Badge className={className}>{label}</Badge>;
 }
 
+function PerformanceGradeBadge({
+  tier,
+  label
+}: {
+  tier: "S" | "A" | "B" | "C" | "D" | "E";
+  label: string;
+}) {
+  const className =
+    tier === "S"
+      ? "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
+      : tier === "A"
+        ? "border-sky-400/30 bg-sky-500/12 text-sky-100"
+        : tier === "B"
+          ? "border-cyan-400/30 bg-cyan-500/12 text-cyan-100"
+          : tier === "C"
+            ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
+            : tier === "D"
+              ? "border-orange-400/30 bg-orange-500/12 text-orange-100"
+              : "border-rose-400/30 bg-rose-500/12 text-rose-100";
+
+  return <Badge className={className}>{`${tier} 등급 · ${label}`}</Badge>;
+}
+
+function MissionStatusBadge({ status }: { status: "pass" | "warn" | "fail" }) {
+  const className =
+    status === "pass"
+      ? "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
+      : status === "warn"
+        ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
+        : "border-rose-400/30 bg-rose-500/12 text-rose-100";
+
+  const label =
+    status === "pass" ? "미션 성공" : status === "warn" ? "조건 충족, 점수 미달" : "미션 실패";
+
+  return <Badge className={className}>{label}</Badge>;
+}
+
 export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps) {
   const step = simulatorSteps.find((item) => item.id === activeStep) ?? simulatorSteps[0];
   const result = scoreDesign(design, missionId);
@@ -137,8 +176,8 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
             </CardTitle>
             <CardDescription>
               {reviewMode
-                ? "이 결과는 실제 인증 판정이 아니라 설명 가능한 교육용 휴리스틱 결과입니다."
-                : "현재 선택이 차폐실 병목에 어떤 영향을 주는지 요약합니다."}
+                ? "이 결과는 실제 인증 판정이 아니라 교육용 추정 결과입니다."
+                : "현재 선택이 어떤 병목을 만들고 있는지 요약해서 보여줍니다."}
             </CardDescription>
           </div>
 
@@ -146,6 +185,12 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
             <div className="rounded-3xl border border-[var(--primary)]/30 bg-[var(--primary)]/8 px-4 py-3 text-right">
               <div className="text-xs uppercase tracking-[0.18em] text-slate-400">총 학습 점수</div>
               <div className="text-4xl font-semibold text-white">{result.total}</div>
+              <div className="mt-2 flex justify-end">
+                <PerformanceGradeBadge
+                  tier={result.performanceGrade.tier}
+                  label={result.performanceGrade.label}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -158,33 +203,19 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
               <div className="text-sm font-medium text-white">{mission.title}</div>
               <div className="text-sm text-slate-400">{mission.summary}</div>
             </div>
-            <Badge
-              className={
-                result.mission.status === "pass"
-                  ? "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
-                  : result.mission.status === "warn"
-                    ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
-                    : "border-rose-400/30 bg-rose-500/12 text-rose-100"
-              }
-            >
-              {result.mission.status === "pass"
-                ? "미션 성공"
-                : result.mission.status === "warn"
-                  ? "조건 충족, 점수 미달"
-                  : "미션 실패"}
-            </Badge>
+            <MissionStatusBadge status={result.mission.status} />
           </div>
 
           <div className="mb-3 text-sm leading-7 text-slate-300">{result.mission.message}</div>
           <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2 text-sm text-slate-300">
-            권장 통과선: <span className="font-medium text-white">{result.mission.scoreThreshold}점</span>
+            권장 통과선 <span className="font-medium text-white">{result.mission.scoreThreshold}점</span>
           </div>
         </div>
 
         {!reviewMode ? (
           <>
             <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
-              <div className="text-sm font-medium text-white">현재 설계 요약</div>
+              <div className="text-sm font-medium text-white">현재 단계 요약</div>
               <ul className="mt-3 space-y-2 text-sm text-slate-300">
                 <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
                   벽체: {materialLabel} / 두께 {design.thicknessMm} mm
@@ -193,7 +224,7 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                   환기 / 개구부: {openingLabel}
                 </li>
                 <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                  관통판: {cableLabel}
+                  관통부: {cableLabel}
                 </li>
                 <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
                   패널 조인트: {panelJointLabel}
@@ -208,16 +239,26 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
             </div>
 
             <div className="rounded-3xl border border-amber-400/20 bg-amber-400/8 p-4 text-sm leading-7 text-slate-200">
-              미션은 먼저 필수 조건을 봅니다. 그 다음 weakest-link 점수와 권장 통과선을 같이 보므로,
-              같은 선택도 미션이 바뀌면 정답 루트가 달라질 수 있습니다.
+              미션은 먼저 필수 조건을 봅니다. 그다음 weakest-link 기반 총점이 권장 통과선을 넘는지
+              확인합니다. 같은 선택이라도 미션이 바뀌면 정답 경로가 달라질 수 있습니다.
             </div>
           </>
         ) : (
           <>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
-                <div className="mb-2 text-sm font-medium text-white">성능 우선 분석</div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div className="text-sm font-medium text-white">성능 우선 분석</div>
+                  <PerformanceGradeBadge
+                    tier={result.performanceGrade.tier}
+                    label={result.performanceGrade.label}
+                  />
+                </div>
                 <div className="text-sm leading-7 text-slate-300">{result.riskHeadline}</div>
+                <div className="mt-3 rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300">
+                  <span className="font-medium text-white">차폐 성능 등급:</span>{" "}
+                  {result.performanceGrade.description}
+                </div>
                 <div className="mt-3 rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300">
                   <span className="font-medium text-white">가장 잘한 선택:</span> {result.bestMove}
                 </div>
@@ -236,23 +277,23 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                 </div>
                 <div className="mt-3 grid gap-2 text-sm text-slate-300">
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    추정 비용 부담: <span className="font-medium text-white">{result.valueAssessment.costIndex}</span>
+                    추정 비용 부담 <span className="font-medium text-white">{result.valueAssessment.costIndex}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    추정 무게 부담: <span className="font-medium text-white">{result.valueAssessment.weightIndex}</span>
+                    추정 무게 부담 <span className="font-medium text-white">{result.valueAssessment.weightIndex}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    제작 복잡도: <span className="font-medium text-white">{result.valueAssessment.complexityIndex}</span>
+                    제작 복잡도 <span className="font-medium text-white">{result.valueAssessment.complexityIndex}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    가성비 점수: <span className="font-medium text-white">{result.valueAssessment.efficiencyScore}</span>
+                    가성비 점수 <span className="font-medium text-white">{result.valueAssessment.efficiencyScore}</span>
                   </div>
                 </div>
                 <div className="mt-3 rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300">
                   {result.valueAssessment.summary}
                 </div>
                 <div className="mt-3 rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300">
-                  <span className="font-medium text-white">가성비 개선 포인트:</span>{" "}
+                  <span className="font-medium text-white">가성비 개선 포인트</span>{" "}
                   {result.valueAssessment.nextMove}
                 </div>
               </div>
@@ -287,7 +328,7 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                     환기 / 개구부: {openingLabel}
                   </li>
                   <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    관통판: {cableLabel}
+                    관통부: {cableLabel}
                   </li>
                   <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
                     패널 조인트: {panelJointLabel}

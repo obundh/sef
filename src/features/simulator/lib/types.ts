@@ -160,8 +160,15 @@ export interface ValueAssessment {
   nextMove: string;
 }
 
+export interface PerformanceGrade {
+  tier: "S" | "A" | "B" | "C" | "D" | "E";
+  label: string;
+  description: string;
+}
+
 export interface ScoreResult {
   total: number;
+  performanceGrade: PerformanceGrade;
   conceptualBands: {
     low: number;
     mid: number;
