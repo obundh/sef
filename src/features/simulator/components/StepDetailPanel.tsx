@@ -23,6 +23,10 @@ import {
 } from "@/features/simulator/data/simulator-data";
 import { getEntryAddonStateKey } from "@/features/simulator/lib/entry-config";
 import {
+  getOptionGradeSummary,
+  type OptionGradeSummary
+} from "@/features/simulator/lib/option-grades";
+import {
   getBondingImageSrc,
   getCableImageSrc,
   getDoorImageSrc,
@@ -131,14 +135,25 @@ function OptionTile({
   selected,
   onClick,
   accentColor = "var(--primary)",
-  previewSrc
+  previewSrc,
+  gradeSummary
 }: {
   title: string;
   selected: boolean;
   onClick: () => void;
   accentColor?: string;
   previewSrc?: string | null;
+  gradeSummary?: OptionGradeSummary | null;
 }) {
+  const getTierClassName = (tier: OptionGradeSummary["shielding"]) => {
+    if (tier === "S") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-100";
+    if (tier === "A") return "border-sky-400/20 bg-sky-500/10 text-sky-100";
+    if (tier === "B") return "border-cyan-400/20 bg-cyan-500/10 text-cyan-100";
+    if (tier === "C") return "border-amber-400/20 bg-amber-400/10 text-amber-100";
+    if (tier === "D") return "border-orange-400/20 bg-orange-500/10 text-orange-100";
+    return "border-rose-400/20 bg-rose-500/10 text-rose-100";
+  };
+
   return (
     <button
       type="button"
@@ -165,6 +180,36 @@ function OptionTile({
           </span>
         )}
       </div>
+
+      {gradeSummary && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.shielding
+            )}`}
+          >
+            차폐 {gradeSummary.shielding}
+          </div>
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.value
+            )}`}
+          >
+            가성비 {gradeSummary.value}
+          </div>
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.build
+            )}`}
+          >
+            시공성 {gradeSummary.build}
+          </div>
+        </div>
+      )}
+
+      {gradeSummary?.note && (
+        <div className="mt-2 text-[11px] leading-5 text-slate-400">{gradeSummary.note}</div>
+      )}
     </button>
   );
 }
@@ -290,6 +335,7 @@ export function StepDetailPanel({
                     onClick={() => onMaterialChange(material.id)}
                     accentColor={material.stroke}
                     previewSrc={getMaterialImageSrc(material.id)}
+                    gradeSummary={getOptionGradeSummary(material.id, activeStep)}
                   />
                 ))}
               </div>
@@ -303,6 +349,7 @@ export function StepDetailPanel({
                       title={option.label}
                       selected={design.thicknessMm === Number(option.id)}
                       onClick={() => onThicknessChange(Number(option.id) as 1 | 2 | 3)}
+                      gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                     />
                   ))}
                 </div>
@@ -319,6 +366,7 @@ export function StepDetailPanel({
                   selected={design.panelJointPlan === option.id}
                   onClick={() => onPanelJointChange(option.id)}
                   previewSrc={getPanelJointImageSrc(option.id)}
+                  gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                 />
               ))}
             </div>
@@ -333,6 +381,7 @@ export function StepDetailPanel({
                   selected={design.doorPlan === option.id}
                   onClick={() => onDoorChange(option.id)}
                   previewSrc={getDoorImageSrc(option.id)}
+                  gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                 />
               ))}
             </div>
@@ -347,6 +396,7 @@ export function StepDetailPanel({
                   selected={design.openingPattern === option.id}
                   onClick={() => onOpeningChange(option.id)}
                   previewSrc={getOpeningImageSrc(option.id)}
+                  gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                 />
               ))}
             </div>
@@ -364,6 +414,7 @@ export function StepDetailPanel({
                       selected={design.cablePlan === option.id}
                       onClick={() => onCableChange(option.id)}
                       previewSrc={getCableImageSrc(option.id)}
+                      gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                     />
                   ))}
                 </div>
@@ -383,6 +434,7 @@ export function StepDetailPanel({
                           onEntryAddonToggle(option.id, !design.entryAddons[stateKey])
                         }
                         previewSrc={getEntryAddonImageSrc(option.id)}
+                        gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                       />
                     );
                   })}
@@ -400,6 +452,7 @@ export function StepDetailPanel({
                   selected={design.bondingPlan === option.id}
                   onClick={() => onBondingChange(option.id)}
                   previewSrc={getBondingImageSrc(option.id)}
+                  gradeSummary={getOptionGradeSummary(option.id, activeStep)}
                 />
               ))}
             </div>

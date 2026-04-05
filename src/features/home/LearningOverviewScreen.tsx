@@ -31,6 +31,7 @@ import {
   getOpeningImageSrc,
   getPanelJointImageSrc
 } from "@/features/simulator/lib/choice-images";
+import { getOptionGradeSummary } from "@/features/simulator/lib/option-grades";
 import type { SimulatorStepId } from "@/features/simulator/lib/types";
 
 interface LearningOverviewScreenProps {
@@ -303,7 +304,23 @@ const sections: ExplanationSection[] = [
   }
 ];
 
-function ExplanationCard({ item }: { item: ExplanationItem }) {
+function ExplanationCard({
+  item,
+  stepId
+}: {
+  item: ExplanationItem;
+  stepId: SimulatorStepId;
+}) {
+  const gradeSummary = getOptionGradeSummary(item.id, stepId);
+  const getTierClassName = (tier: "S" | "A" | "B" | "C" | "D" | "E") => {
+    if (tier === "S") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-100";
+    if (tier === "A") return "border-sky-400/20 bg-sky-500/10 text-sky-100";
+    if (tier === "B") return "border-cyan-400/20 bg-cyan-500/10 text-cyan-100";
+    if (tier === "C") return "border-amber-400/20 bg-amber-400/10 text-amber-100";
+    if (tier === "D") return "border-orange-400/20 bg-orange-500/10 text-orange-100";
+    return "border-rose-400/20 bg-rose-500/10 text-rose-100";
+  };
+
   return (
     <div className="rounded-[24px] border border-white/8 bg-[#091425] p-4">
       {item.imageSrc && (
@@ -313,6 +330,37 @@ function ExplanationCard({ item }: { item: ExplanationItem }) {
       )}
 
       <div className="text-base font-medium text-white">{item.label}</div>
+
+      {gradeSummary && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.shielding
+            )}`}
+          >
+            차폐 {gradeSummary.shielding}
+          </div>
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.value
+            )}`}
+          >
+            가성비 {gradeSummary.value}
+          </div>
+          <div
+            className={`rounded-full border px-2 py-1 text-[11px] font-medium ${getTierClassName(
+              gradeSummary.build
+            )}`}
+          >
+            시공성 {gradeSummary.build}
+          </div>
+        </div>
+      )}
+
+      {gradeSummary?.note && (
+        <div className="mt-2 text-[11px] leading-5 text-slate-400">{gradeSummary.note}</div>
+      )}
+
       <div className="mt-2 text-sm leading-6 text-slate-300">{item.description}</div>
 
       <div className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-500/8 px-3 py-3 text-sm leading-6 text-slate-200">
@@ -514,7 +562,7 @@ export function LearningOverviewScreen({
                     <div className="text-sm font-medium text-white">{group.title}</div>
                     <div className="grid gap-3 lg:grid-cols-2">
                       {group.items.map((item) => (
-                        <ExplanationCard key={item.id} item={item} />
+                        <ExplanationCard key={item.id} item={item} stepId={section.id} />
                       ))}
                     </div>
                   </div>
