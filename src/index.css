@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --background: #07111f;
+  --foreground: #e5eefc;
+  --card: #0c172a;
+  --card-foreground: #e5eefc;
+  --muted: #10213d;
+  --muted-foreground: #94a3b8;
+  --border: rgba(148, 163, 184, 0.18);
+  --primary: #58d3c2;
+  --primary-foreground: #041018;
+  --accent: #163450;
+  --accent-foreground: #e5eefc;
+  --ring: rgba(88, 211, 194, 0.45);
+  --danger: #fb7185;
+  --warning: #f59e0b;
+  --success: #4ade80;
+  font-family:
+    "Pretendard", "SUIT", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(88, 211, 194, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 20%),
+    linear-gradient(180deg, #06101d 0%, #07111f 100%);
+  color: var(--foreground);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(12, 23, 42, 0.95);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.28);
+}
+
+@utility panel-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@utility shadow-panel {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
