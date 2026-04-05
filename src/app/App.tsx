@@ -1,13 +1,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Suspense, lazy, useState } from "react";
 import { HomeScreen } from "@/features/home/HomeScreen";
+import { LearningOverviewScreen } from "@/features/home/LearningOverviewScreen";
 
 const SimulatorWorkspace = lazy(async () => {
   const module = await import("@/features/simulator/components/SimulatorWorkspace");
   return { default: module.SimulatorWorkspace };
 });
 
-type AppScreen = "home" | "simulator";
+type AppScreen = "home" | "overview" | "simulator";
 
 export function App() {
   const [screen, setScreen] = useState<AppScreen>("home");
@@ -22,7 +23,23 @@ export function App() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.25 }}
         >
-          <HomeScreen onOpenSimulator={() => setScreen("simulator")} />
+          <HomeScreen
+            onOpenOverview={() => setScreen("overview")}
+            onOpenSimulator={() => setScreen("simulator")}
+          />
+        </motion.div>
+      ) : screen === "overview" ? (
+        <motion.div
+          key="overview"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.25 }}
+        >
+          <LearningOverviewScreen
+            onBackHome={() => setScreen("home")}
+            onOpenSimulator={() => setScreen("simulator")}
+          />
         </motion.div>
       ) : (
         <motion.div

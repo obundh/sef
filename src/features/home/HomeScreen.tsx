@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 
 interface HomeScreenProps {
+  onOpenOverview: () => void;
   onOpenSimulator: () => void;
 }
 
@@ -25,25 +26,25 @@ const panels = [
     title: "학습 개요",
     icon: BookOpenText,
     detail:
-      "학생이 벽체 두께만 키우는 접근에서 벗어나, 출입문 조인트와 관통판, 본딩이 왜 더 큰 병목이 되는지 단계별로 배우는 교육용 시뮬레이터입니다."
+      "재질, 패널 조인트, 출입문, 개구부, 관통부, 본딩/접지까지 각 선택지가 왜 유리하거나 불리한지 모아 보는 설명 화면입니다."
   },
   {
     id: "simulator",
     title: "차폐실 시뮬레이터",
     icon: Shield,
     detail:
-      "빈 제작 공간에서 시작해 재질, 환기 개구부, 관통판, 출입문 조인트를 고를 때마다 차폐실 정면도와 후면도가 함께 완성됩니다."
+      "빈 제작 공간에서 시작해 외피, 조인트, 문, 개구부, 관통부, 본딩을 단계별로 고르며 차폐실을 완성합니다."
   },
   {
     id: "guide",
     title: "기준 메모",
     icon: ClipboardList,
     detail:
-      "각 단계마다 어떤 선택이 유리하고 불리한지 plain language로 풀어 설명해, 학생이 설계 의도를 이해하도록 구성했습니다."
+      "미션 조건, weakest-link 사고방식, 보호된 개구부와 관통부의 의미를 짧은 요약으로 다시 보는 보조 영역입니다."
   }
 ] as const;
 
-export function HomeScreen({ onOpenSimulator }: HomeScreenProps) {
+export function HomeScreen({ onOpenOverview, onOpenSimulator }: HomeScreenProps) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col px-4 py-6 lg:px-6">
       <header className="mb-6 rounded-[32px] border border-white/10 bg-[var(--card)]/90 px-6 py-6 shadow-panel">
@@ -59,9 +60,9 @@ export function HomeScreen({ onOpenSimulator }: HomeScreenProps) {
               단계별로 학습
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 lg:text-base">
-              메인에서 버튼 3개로 시작하고, 2번째 버튼은 실제 차폐실 제작 시뮬레이터로
-              이어집니다. 재질을 고르면 빈 제작 공간에 차폐실 외형이 생기고, 다음 단계에서 환기
-              개구부, 케이블 관통판, 출입문 조인트, 본딩 계획이 그대로 반영됩니다.
+              메인에서 버튼 3개로 시작하고, 1번 버튼은 선택지 설명 모음, 2번 버튼은 실제 제작형
+              시뮬레이터로 연결됩니다. 학생이 금속 두께만이 아니라 조인트, 출입문, 개구부,
+              관통부, 본딩이 왜 더 큰 병목이 되는지 비교하면서 배우는 구조입니다.
             </p>
           </div>
 
@@ -75,29 +76,35 @@ export function HomeScreen({ onOpenSimulator }: HomeScreenProps) {
       <main className="grid gap-4 lg:grid-cols-3">
         {panels.map((panel, index) => {
           const Icon = panel.icon;
+          const isOverview = index === 0;
           const isSimulator = index === 1;
+          const isInteractive = isOverview || isSimulator;
 
           return (
             <motion.button
               key={panel.id}
               type="button"
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={isSimulator ? onOpenSimulator : undefined}
-              className="text-left"
+              whileHover={isInteractive ? { y: -4 } : undefined}
+              whileTap={isInteractive ? { scale: 0.98 } : undefined}
+              onClick={
+                isSimulator ? onOpenSimulator : isOverview ? onOpenOverview : undefined
+              }
+              className={`text-left ${isInteractive ? "" : "cursor-default"}`}
             >
               <Card
                 className={`h-full ${
                   isSimulator
                     ? "border-[var(--primary)]/40 bg-[linear-gradient(180deg,rgba(88,211,194,0.16),rgba(12,23,42,0.96))]"
-                    : ""
+                    : isOverview
+                      ? "border-white/15 bg-[linear-gradient(180deg,rgba(148,163,184,0.14),rgba(12,23,42,0.96))]"
+                      : ""
                 }`}
               >
                 <CardHeader>
                   <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/6">
                     <Icon
                       className={`h-6 w-6 ${
-                        isSimulator ? "text-[var(--primary)]" : "text-slate-300"
+                        isInteractive ? "text-[var(--primary)]" : "text-slate-300"
                       }`}
                     />
                   </div>
@@ -106,9 +113,11 @@ export function HomeScreen({ onOpenSimulator }: HomeScreenProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-2xl border border-white/8 bg-[#081121] p-4 text-sm leading-6 text-slate-300">
-                    {isSimulator
-                      ? "2번 버튼으로 바로 진입합니다. 현재 구현 범위는 단계별 선택, 정면도/후면도 제작 공간 미리보기, 최종 학습 점수 결과입니다."
-                      : "이 버튼은 현재 설명용 패널입니다. 실제 상호작용은 2번 시뮬레이터에 연결되어 있습니다."}
+                    {isOverview
+                      ? "1번 버튼에는 각 선택지의 핵심 설명, 장점, 주의점이 단계별로 정리되어 있습니다."
+                      : isSimulator
+                        ? "2번 버튼으로 바로 진입합니다. 외피부터 관통부와 본딩까지 선택이 제작 공간과 결과 분석에 즉시 반영됩니다."
+                        : "3번 버튼은 현재 요약 메모 성격의 안내 패널입니다."}
                   </div>
                 </CardContent>
               </Card>
