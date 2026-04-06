@@ -168,12 +168,12 @@ function OptionTile({
     >
       {previewSrc && (
         <div className="mb-3 overflow-hidden rounded-xl border border-white/8 bg-[#07101d]">
-          <img src={previewSrc} alt={title} className="h-28 w-full object-cover" />
+          <img src={previewSrc} alt={title} className="h-36 w-full object-cover sm:h-28" />
         </div>
       )}
 
       <div className="flex items-start justify-between gap-3">
-        <div className="text-sm font-medium text-white sm:text-base">{title}</div>
+        <div className="text-base font-medium leading-6 text-white">{title}</div>
         {selected && (
           <span className="rounded-full bg-emerald-500/15 p-1 text-emerald-300">
             <Check className="h-3.5 w-3.5" />

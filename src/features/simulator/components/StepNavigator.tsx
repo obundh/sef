@@ -47,8 +47,8 @@ export function StepNavigator({ activeStep, onStepChange }: StepNavigatorProps) 
           맞춰 두었습니다.
         </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-auto pb-4">
-        <div className="flex min-w-max gap-2 xl:min-w-0 xl:flex-col">
+      <CardContent className="pb-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
           {simulatorSteps.map((step, index) => {
             const Icon = iconMap[step.id];
             const isActive = step.id === activeStep;
@@ -60,7 +60,7 @@ export function StepNavigator({ activeStep, onStepChange }: StepNavigatorProps) 
                 type="button"
                 onClick={() => onStepChange(step.id)}
                 className={cn(
-                  "flex min-w-[196px] items-center gap-3 rounded-2xl border px-3 py-3 text-left transition xl:min-w-0 xl:w-full",
+                  "flex min-h-[84px] items-center gap-3 rounded-2xl border px-3 py-3 text-left transition xl:w-full",
                   isActive
                     ? "border-[var(--primary)]/40 bg-[var(--primary)]/10"
                     : "border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/7"
@@ -88,7 +88,7 @@ export function StepNavigator({ activeStep, onStepChange }: StepNavigatorProps) 
                   <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
                     Step {index + 1}
                   </div>
-                  <div className="whitespace-normal text-sm font-medium leading-5 text-white">
+                  <div className="whitespace-normal text-[13px] font-medium leading-5 text-white sm:text-sm">
                     {step.shortLabel}
                   </div>
                 </div>

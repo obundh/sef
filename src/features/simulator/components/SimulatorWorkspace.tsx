@@ -229,11 +229,7 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
           <StepNavigator activeStep={activeStep} onStepChange={goToStep} />
         </div>
 
-        <div className="order-2 xl:col-start-2 xl:row-span-2">
-          <ProductionPreview design={design} activeStep={activeStep} />
-        </div>
-
-        <div className="order-3 xl:col-start-1">
+        <div className="order-2 xl:col-start-1">
           <StepDetailPanel
             design={design}
             activeStep={activeStep}
@@ -251,6 +247,10 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
             onExport={handleExport}
             onImportRequest={() => fileInputRef.current?.click()}
           />
+        </div>
+
+        <div className="order-3 xl:col-start-2 xl:row-span-2">
+          <ProductionPreview design={design} activeStep={activeStep} />
         </div>
 
         <div className="order-4 xl:col-start-3 xl:row-span-2">

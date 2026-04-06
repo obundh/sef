@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -151,7 +152,7 @@ function getRearSidePoints(geometry: RoomGeometry) {
 
 function EmptyScene({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d]">
+    <div className="relative aspect-[16/10] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d] sm:aspect-[4/3]">
       <svg viewBox="0 0 520 390" className="h-full w-full" role="img" aria-label={title}>
         <rect x="1" y="1" width="518" height="388" rx="28" fill="#050c18" stroke="rgba(148,163,184,0.18)" />
         <GridBackdrop />
@@ -456,7 +457,7 @@ function FrontRoomView({
   };
 
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d]">
+    <div className="relative aspect-[16/10] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d] sm:aspect-[4/3]">
       <svg viewBox="0 0 520 390" className="h-full w-full" role="img" aria-label="차폐실 정면 2.5D 미리보기">
         <defs>
           <linearGradient id="front-face" x1="0" y1="0" x2="1" y2="1">
@@ -779,7 +780,7 @@ function RearRoomView({
   };
 
   return (
-    <div className="relative aspect-[4/3] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d]">
+    <div className="relative aspect-[16/10] overflow-hidden rounded-[20px] border border-white/8 bg-[#07101d] sm:aspect-[4/3]">
       <svg viewBox="0 0 520 390" className="h-full w-full" role="img" aria-label="차폐실 후면 2.5D 미리보기">
         <defs>
           <linearGradient id="rear-face" x1="0" y1="0" x2="1" y2="1">
@@ -888,12 +889,18 @@ function PreviewPane({
 }
 
 export function ProductionPreview({ design, activeStep }: ProductionPreviewProps) {
+  const [mobileView, setMobileView] = useState<"front" | "rear">("front");
   const materialLabel = design.materialId ? materials[design.materialId].label : "미선택";
   const openingLabel = getLabel(openingOptions, design.openingPattern);
   const panelJointLabel = getLabel(panelJointOptions, design.panelJointPlan);
   const doorLabel = getLabel(doorOptions, design.doorPlan);
   const cableLabel = getEntrySummary(design);
   const bondingLabel = getLabel(bondingOptions, design.bondingPlan);
+  const shouldFocusRear = activeStep === "entry" || activeStep === "bonding";
+
+  useEffect(() => {
+    setMobileView(shouldFocusRear ? "rear" : "front");
+  }, [shouldFocusRear]);
 
   return (
     <Card className="h-full">
@@ -909,14 +916,34 @@ export function ProductionPreview({ design, activeStep }: ProductionPreviewProps
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="rounded-[28px] border border-white/10 bg-[#07101d] p-3 sm:p-4">
-          <div className="mb-3 text-sm leading-6 text-slate-300">
+          <div className="mb-3 hidden text-sm leading-6 text-slate-300 sm:block">
             정면은 출입문, 전면 개구부, 전면 조인트만 보여주고 후면은 관통판과 본딩 기준점만
             보여주도록 분리했습니다. 같은 차폐실을 바라보되 앞면 요소와 뒷면 요소가 섞이지 않게
             좌표를 다시 정리했습니다.
           </div>
 
+          <div className="mb-3 grid grid-cols-2 gap-2 lg:hidden">
+            <Button
+              type="button"
+              variant={mobileView === "front" ? "default" : "secondary"}
+              onClick={() => setMobileView("front")}
+              className="w-full"
+            >
+              정면
+            </Button>
+            <Button
+              type="button"
+              variant={mobileView === "rear" ? "default" : "secondary"}
+              onClick={() => setMobileView("rear")}
+              className="w-full"
+            >
+              후면
+            </Button>
+          </div>
+
           <div className="grid gap-3 lg:grid-cols-2">
-            <PreviewPane
+            <div className={mobileView === "front" ? "block" : "hidden lg:block"}>
+              <PreviewPane
               title="정면 시점"
               subtitle="Front perspective"
               badges={[
@@ -926,16 +953,19 @@ export function ProductionPreview({ design, activeStep }: ProductionPreviewProps
                 `출입문 ${doorLabel}`
               ]}
             >
-              <FrontRoomView design={design} activeStep={activeStep} />
-            </PreviewPane>
+                <FrontRoomView design={design} activeStep={activeStep} />
+              </PreviewPane>
+            </div>
 
-            <PreviewPane
+            <div className={mobileView === "rear" ? "block" : "hidden lg:block"}>
+              <PreviewPane
               title="후면 시점"
               subtitle="Rear perspective"
               badges={[`관통판 ${cableLabel}`, `본딩 ${bondingLabel}`, `벽체 ${materialLabel}`]}
             >
-              <RearRoomView design={design} activeStep={activeStep} />
-            </PreviewPane>
+                <RearRoomView design={design} activeStep={activeStep} />
+              </PreviewPane>
+            </div>
           </div>
         </div>
       </CardContent>
