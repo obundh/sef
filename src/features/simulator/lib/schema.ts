@@ -108,6 +108,12 @@ export const legacyDesignSchema = z.object({
 });
 
 export const exportPayloadSchema = z.object({
+  version: z.literal(7),
+  exportedAt: z.string(),
+  design: designSchema
+});
+
+export const previousCurrentExportPayloadSchema = z.object({
   version: z.literal(6),
   exportedAt: z.string(),
   missionId: z.enum(missionIds),

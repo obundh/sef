@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { defaultMissionId } from "@/features/simulator/data/missions";
 import { initialDesign, simulatorSteps } from "@/features/simulator/data/simulator-data";
 import {
   designSchema,
@@ -16,7 +15,6 @@ import type {
   DoorPlan,
   EntryAddonId,
   MaterialId,
-  MissionId,
   OpeningPattern,
   PanelJointPlan,
   SimulatorDesign,
@@ -24,10 +22,8 @@ import type {
 } from "@/features/simulator/lib/types";
 
 interface SimulatorStore {
-  missionId: MissionId;
   design: SimulatorDesign;
   activeStep: SimulatorStepId;
-  setMissionId: (missionId: MissionId) => void;
   setMaterial: (materialId: MaterialId) => void;
   setThickness: (thicknessMm: 1 | 2 | 3) => void;
   setOpeningPattern: (openingPattern: OpeningPattern) => void;
@@ -82,25 +78,11 @@ function getMigratedStep(rawStep: unknown): SimulatorStepId {
   return "material";
 }
 
-function getMigratedMission(rawMission: unknown): MissionId {
-  if (
-    rawMission === "server-room" ||
-    rawMission === "storage-room" ||
-    rawMission === "occupied-room"
-  ) {
-    return rawMission;
-  }
-
-  return defaultMissionId;
-}
-
 export const useSimulatorStore = create<SimulatorStore>()(
   persist(
     (set, get) => ({
-      missionId: defaultMissionId,
       design: initialDesign,
       activeStep: "material",
-      setMissionId: (missionId) => set({ missionId }),
       setMaterial: (materialId) =>
         set((state) => ({ design: { ...state.design, materialId } })),
       setThickness: (thicknessMm) =>
@@ -151,16 +133,14 @@ export const useSimulatorStore = create<SimulatorStore>()(
       },
       reset: () =>
         set({
-          missionId: defaultMissionId,
           design: initialDesign,
           activeStep: "material"
         })
     }),
     {
       name: "shield-simulator-store",
-      version: 6,
+      version: 7,
       partialize: (state) => ({
-        missionId: state.missionId,
         design: state.design,
         activeStep: state.activeStep
       }),
@@ -171,7 +151,6 @@ export const useSimulatorStore = create<SimulatorStore>()(
             : {};
 
         return {
-          missionId: getMigratedMission(state.missionId),
           design: getMigratedDesign(state.design),
           activeStep: getMigratedStep(state.activeStep)
         };

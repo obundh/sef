@@ -1,5 +1,12 @@
 import { motion } from "motion/react";
-import { ArrowLeft, ArrowRight, BookOpenText, ShieldCheck, TriangleAlert } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpenText,
+  Coins,
+  ShieldCheck,
+  TriangleAlert
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +16,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { missions } from "@/features/simulator/data/missions";
+import { getStepOptionCostLabel, pricingReference } from "@/features/simulator/data/pricing";
 import {
   bondingOptions,
   cableOptions,
@@ -31,7 +38,10 @@ import {
   getOpeningImageSrc,
   getPanelJointImageSrc
 } from "@/features/simulator/lib/choice-images";
-import { getOptionGradeSummary } from "@/features/simulator/lib/option-grades";
+import {
+  getOptionGradeSummary,
+  type GradeTier
+} from "@/features/simulator/lib/option-grades";
 import type { SimulatorStepId } from "@/features/simulator/lib/types";
 
 interface LearningOverviewScreenProps {
@@ -45,6 +55,7 @@ interface ExplanationItem {
   description: string;
   pros: string;
   cons: string;
+  priceLabel: string;
   imageSrc?: string | null;
 }
 
@@ -135,19 +146,19 @@ const scoreGradeGuide = [
 ] as const;
 
 const strongChoiceGuide = [
-  "벽체는 강철 또는 복합패널이 상위권입니다. 구리나 두께 3 mm가 자동 정답은 아닙니다.",
-  "패널 조인트는 연속 용접이 가장 높고, 촘촘한 체결은 그 아래, 기본 체결은 낮습니다.",
-  "출입문은 촘촘한 체결 + 도전성 가스켓이 가장 유리합니다.",
-  "환기 / 개구부는 WBC 환기구 1개나 허니컴 1개 같은 보호된 최소 개구부가 유리합니다.",
-  "관통부는 무처리보다 필터 관통판, 통합 필터 관통판, 광섬유, WBC 비전도 서비스 조합이 유리합니다.",
-  "본딩 / 접지는 단일 기준 접지점 + 브레이드 또는 다점 본딩 계열이 상위권입니다."
+  "벽체는 강철이나 복합패널이 상위권입니다. 구리 두께만 올린다고 자동 정답이 되지는 않습니다.",
+  "패널 조인트는 연속 용접이 가장 강하고, 촘촘한 체결은 그 아래, 기본 체결은 더 약합니다.",
+  "출입문은 촘촘한 체결과 도전성 가스켓을 같이 써야 높은 점수를 받습니다.",
+  "환기나 개구부가 필요하면 WBC 환기구 1개나 허니컴 환기구 1개 같은 보호된 최소 개구부가 유리합니다.",
+  "관통부는 무처리 구멍보다 필터 관통판, 통합 필터 관통판, 광섬유, WBC 비전도 서비스 조합이 좋습니다.",
+  "본딩과 접지는 단일 기준 접지점과 브레이드 또는 다점 본딩 계열이 상위권입니다."
 ] as const;
 
 const trapGuide = [
-  "구리는 전도도가 높아 보여도 조인트, 출입문, 개구부, 관통부가 나쁘면 총점이 크게 떨어집니다.",
-  "촘촘한 체결 패널 조인트는 좋아 보이지만 연속 용접보다 낮습니다.",
-  "허니컴 환기구 2개는 보호된 구조여도 개수가 늘어 감점이 생깁니다.",
-  "무처리 관통 1개는 하나뿐이어도 지배적인 누설 경로가 될 수 있습니다."
+  "구리는 전도도가 높아 보여도 조인트와 개구부, 관통부가 약하면 전체 점수는 크게 떨어집니다.",
+  "촘촘한 체결 패널 조인트는 좋아 보여도 연속 용접보다 약합니다.",
+  "허니컴 환기구도 개수가 많아지면 누설 경로가 늘어납니다.",
+  "무처리 관통 1개도 충분히 지배적인 누설 경로가 될 수 있습니다."
 ] as const;
 
 function orderOptions<T extends { id: string }>(options: T[], order: readonly string[]) {
@@ -163,7 +174,7 @@ function getLearningNote(stepId: SimulatorStepId, optionId: string) {
   if (stepId === "bonding" && optionId === "none") {
     return {
       pros: "구조가 단순해 보입니다.",
-      cons: "본딩과 접지 경로가 약하면 다른 개선 요소의 효과도 함께 무너집니다."
+      cons: "본딩과 접지 경로가 부족하면 다른 개선 요소의 효과도 충분히 살아나기 어렵습니다."
     };
   }
 
@@ -184,6 +195,7 @@ function buildItems(
       description: option.description,
       pros: note.pros,
       cons: note.cons,
+      priceLabel: getStepOptionCostLabel(stepId, option.id),
       imageSrc: imageResolver?.(option.id) ?? null
     };
   });
@@ -197,7 +209,8 @@ const sections: ExplanationSection[] = [
   {
     id: "material",
     title: "1단계. 차폐실 외피 기본 설정",
-    description: "재질과 두께는 시작점입니다. 하지만 전체 점수는 이후 병목 구간에 의해 크게 제한됩니다.",
+    description:
+      "벽체 재질과 두께를 먼저 정하지만, 실제 총점은 이후 조인트와 개구부, 관통부, 본딩에 크게 좌우됩니다.",
     criteria: getStep("material").criteria,
     groups: [
       {
@@ -217,7 +230,8 @@ const sections: ExplanationSection[] = [
   {
     id: "panelJoint",
     title: "2단계. 패널 조인트 처리",
-    description: "고정 패널 사이 조인트는 벽체보다 먼저 병목이 되기 쉬운 핵심 구간입니다.",
+    description:
+      "고정 패널의 이음부는 큰 벽체보다 먼저 병목이 되는 구간입니다. 구조적 연속성과 전기적 연속성을 같이 봐야 합니다.",
     criteria: getStep("panelJoint").criteria,
     groups: [
       {
@@ -233,7 +247,8 @@ const sections: ExplanationSection[] = [
   {
     id: "door",
     title: "3단계. 출입문 처리",
-    description: "문은 용접으로 닫을 수 없기 때문에 체결 밀도와 도전성 가스켓이 중요합니다.",
+    description:
+      "출입문은 용접으로 완전히 닫을 수 없기 때문에 체결 밀도와 가스켓 품질이 성능을 크게 좌우합니다.",
     criteria: getStep("door").criteria,
     groups: [
       {
@@ -249,7 +264,8 @@ const sections: ExplanationSection[] = [
   {
     id: "openings",
     title: "4단계. 환기 / 개구부 계획",
-    description: "개구부는 필요한 기능을 들이되 보호된 최소 개구부로 유지하는 것이 핵심입니다.",
+    description:
+      "개구부는 의도적인 약점부입니다. 필요한 기능만 보호된 방식으로 최소화하는 것이 핵심입니다.",
     criteria: getStep("openings").criteria,
     groups: [
       {
@@ -265,7 +281,8 @@ const sections: ExplanationSection[] = [
   {
     id: "entry",
     title: "5단계. 케이블 / 비전도 관통부 구성",
-    description: "관통판 기본 구조와 실제로 통과하는 서비스는 분리해서 생각해야 합니다.",
+    description:
+      "관통부는 기본 구조와 통과 서비스 구성을 분리해서 봐야 합니다. 어떤 서비스가 들어오느냐에 따라 보호 방식이 달라집니다.",
     criteria: getStep("entry").criteria,
     groups: [
       {
@@ -289,7 +306,8 @@ const sections: ExplanationSection[] = [
   {
     id: "bonding",
     title: "6단계. 본딩 / 접지 체계",
-    description: "본딩과 접지는 전기적 연속성과 전류 경로를 마감하는 마지막 핵심 단계입니다.",
+    description:
+      "마지막 단계는 전류 경로와 전기적 연속성을 정리하는 단계입니다. 저렴해 보여도 빼면 전체 구조가 흔들릴 수 있습니다.",
     criteria: getStep("bonding").criteria,
     groups: [
       {
@@ -304,6 +322,15 @@ const sections: ExplanationSection[] = [
   }
 ];
 
+function getTierClassName(tier: GradeTier) {
+  if (tier === "S") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-100";
+  if (tier === "A") return "border-sky-400/20 bg-sky-500/10 text-sky-100";
+  if (tier === "B") return "border-cyan-400/20 bg-cyan-500/10 text-cyan-100";
+  if (tier === "C") return "border-amber-400/20 bg-amber-400/10 text-amber-100";
+  if (tier === "D") return "border-orange-400/20 bg-orange-500/10 text-orange-100";
+  return "border-rose-400/20 bg-rose-500/10 text-rose-100";
+}
+
 function ExplanationCard({
   item,
   stepId
@@ -312,14 +339,6 @@ function ExplanationCard({
   stepId: SimulatorStepId;
 }) {
   const gradeSummary = getOptionGradeSummary(item.id, stepId);
-  const getTierClassName = (tier: "S" | "A" | "B" | "C" | "D" | "E") => {
-    if (tier === "S") return "border-emerald-400/20 bg-emerald-500/10 text-emerald-100";
-    if (tier === "A") return "border-sky-400/20 bg-sky-500/10 text-sky-100";
-    if (tier === "B") return "border-cyan-400/20 bg-cyan-500/10 text-cyan-100";
-    if (tier === "C") return "border-amber-400/20 bg-amber-400/10 text-amber-100";
-    if (tier === "D") return "border-orange-400/20 bg-orange-500/10 text-orange-100";
-    return "border-rose-400/20 bg-rose-500/10 text-rose-100";
-  };
 
   return (
     <div className="rounded-[24px] border border-white/8 bg-[#091425] p-4">
@@ -329,7 +348,10 @@ function ExplanationCard({
         </div>
       )}
 
-      <div className="text-base font-medium text-white">{item.label}</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-base font-medium text-white">{item.label}</div>
+        <Badge className="border-white/10 bg-white/6 text-slate-200">{item.priceLabel}</Badge>
+      </div>
 
       {gradeSummary && (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -357,11 +379,7 @@ function ExplanationCard({
         </div>
       )}
 
-      {gradeSummary?.note && (
-        <div className="mt-2 text-[11px] leading-5 text-slate-400">{gradeSummary.note}</div>
-      )}
-
-      <div className="mt-2 text-sm leading-6 text-slate-300">{item.description}</div>
+      <div className="mt-3 text-sm leading-6 text-slate-300">{item.description}</div>
 
       <div className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-500/8 px-3 py-3 text-sm leading-6 text-slate-200">
         <span className="font-medium text-emerald-200">장점:</span> {item.pros}
@@ -385,23 +403,23 @@ export function LearningOverviewScreen({
       <header className="mb-6 rounded-[32px] border border-white/10 bg-[var(--card)]/90 px-6 py-6 shadow-panel">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <Badge className="mb-3">버튼 1 설명 모음</Badge>
+            <Badge className="mb-3">버튼 1 학습 개요</Badge>
             <h1 className="text-3xl font-semibold tracking-tight text-white lg:text-5xl">
               선택지 설명과
               <br />
-              점수 체계 공개
+              점수 / 가격 기준
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 lg:text-base">
-              이 화면에서는 각 선택지의 의미뿐 아니라 점수 체계도 같이 공개합니다. 학생이
-              어떤 선택이 왜 유리한지, 무엇이 함정인지, 미션에 따라 무엇이 달라지는지 먼저 보고
-              시뮬레이터에 들어갈 수 있도록 구성했습니다.
+              각 선택지가 왜 좋은지, 어디가 함정인지, 그리고 대략 어느 정도 비용으로
+              잡았는지를 먼저 보고 시뮬레이터로 들어갈 수 있게 정리해두었습니다.
+              실제 견적서나 인증 문서가 아니라 교육용 추정 기준입니다.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="lg" className="rounded-2xl" onClick={onBackHome}>
               <ArrowLeft className="h-4 w-4" />
-              홈으로
+              뒤로
             </Button>
             <Button size="lg" className="rounded-2xl" onClick={onOpenSimulator}>
               시뮬레이터로 이동
@@ -416,8 +434,8 @@ export function LearningOverviewScreen({
           <CardHeader>
             <CardTitle>점수 체계</CardTitle>
             <CardDescription>
-              이 앱은 단순 평균이 아니라 병목형 모델입니다. 벽체가 좋아도 조인트, 출입문, 개구부,
-              관통부, 본딩 중 약한 한 곳이 총점을 강하게 제한합니다.
+              이 앱은 단순 평균이 아니라 weakest-link 철학으로 계산합니다. 벽체가 좋아도
+              조인트, 출입문, 개구부, 관통부, 본딩 중 한 곳이 약하면 총점이 강하게 제한됩니다.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -439,28 +457,24 @@ export function LearningOverviewScreen({
                   ))}
                 </div>
                 <div className="mt-3 rounded-2xl border border-amber-400/15 bg-amber-400/8 px-3 py-3 text-sm leading-6 text-slate-200">
-                  가장 약한 하위 점수는 최종 총점 상한을 직접 제한합니다. 현재 모델에서는 weakest-link
-                  점수에 약간의 보정만 더해 상한을 잡습니다.
+                  가장 약한 하위 점수가 최종 총점 상한을 강하게 잡습니다. 그래서 재질만
+                  올리는 전략보다 불연속부를 줄이는 전략이 더 중요하게 반영됩니다.
                 </div>
               </div>
 
               <div className="rounded-[24px] border border-white/8 bg-[#091425] p-4">
-                <div className="mb-3 text-sm font-medium text-white">미션 통과선</div>
-                <div className="space-y-2">
-                  {[
-                    missions["occupied-room"],
-                    missions["storage-room"],
-                    missions["server-room"]
-                  ].map((mission) => (
+                <div className="mb-3 text-sm font-medium text-white">차폐 성능 등급</div>
+                <div className="grid gap-2 md:grid-cols-3">
+                  {scoreGradeGuide.map((item) => (
                     <div
-                      key={mission.id}
+                      key={item.tier}
                       className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300"
                     >
-                      <div className="font-medium text-white">{mission.title}</div>
-                      <div className="mt-1">{mission.summary}</div>
-                      <div className="mt-1 text-slate-400">
-                        권장 통과선: <span className="font-medium text-white">{mission.scoreThreshold}점</span>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-lg font-semibold text-white">{item.tier}</span>
+                        <span className="text-slate-400">{item.range}</span>
                       </div>
+                      <div className="mt-2">{item.label}</div>
                     </div>
                   ))}
                 </div>
@@ -499,29 +513,46 @@ export function LearningOverviewScreen({
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="rounded-[24px] border border-white/8 bg-[#091425] p-4">
-              <div className="mb-3 text-sm font-medium text-white">차폐 성능 등급</div>
-              <div className="grid gap-2 md:grid-cols-3">
-                {scoreGradeGuide.map((item) => (
-                  <div
-                    key={item.tier}
-                    className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-lg font-semibold text-white">{item.tier}</span>
-                      <span className="text-slate-400">{item.range}</span>
-                    </div>
-                    <div className="mt-2">{item.label}</div>
-                  </div>
-                ))}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-[var(--primary)]" />
+              <div>
+                <CardTitle>가격 기준</CardTitle>
+                <CardDescription>
+                  {pricingReference.updatedAt} 기준 교육용 추정 단가입니다. 실제 견적이 아니라
+                  시세와 대표 부품 가격을 묶어 만든 학습용 숫자입니다.
+                </CardDescription>
               </div>
             </div>
-
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="rounded-[24px] border border-white/8 bg-[#091425] p-4 text-sm leading-7 text-slate-300">
-              자유 모드에서는 `개구부 없음`과 `관통판 없음`이 유리할 수 있습니다. 하지만 미션 모드에서는
-              `필요한 서비스는 보호된 방식으로 최소한만 들여오는 것`이 더 높은 평가를 받습니다. 즉
-              “완전히 막는 것”이 아니라 “필요한 것만 안전하게 통과시키는 것”이 이 앱의 정답 철학입니다.
+              <div className="font-medium text-white">{pricingReference.model}</div>
+              <div className="mt-2">{pricingReference.note}</div>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {pricingReference.sources.map((source) => (
+                <div
+                  key={source.label}
+                  className="rounded-[24px] border border-white/8 bg-[#091425] p-4 text-sm text-slate-300"
+                >
+                  <div className="font-medium text-white">{source.label}</div>
+                  <div className="mt-2 leading-6">{source.detail}</div>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex text-sm text-[var(--primary)] underline-offset-4 hover:underline"
+                  >
+                    출처 보기
+                  </a>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -576,8 +607,8 @@ export function LearningOverviewScreen({
           <CardHeader>
             <CardTitle>7단계. 최종 검토</CardTitle>
             <CardDescription>
-              최종 결과에서는 weakest-link 기반 총점, hotspot, 대역별 개념 성능, 다음 개선 포인트를
-              함께 보여줍니다.
+              최종 결과에서는 총 학습 점수, 대역별 개념 성능, hotspot, 비용, 가성비를 함께
+              보여줍니다.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">

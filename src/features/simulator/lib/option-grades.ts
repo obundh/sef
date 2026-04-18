@@ -23,7 +23,7 @@ export const optionGrades: Record<string, OptionGradeSummary> = {
     shielding: "S",
     value: "A",
     build: "A",
-    note: "미션에 따라 필수 개구부가 있으면 정답이 아닐 수 있습니다."
+    note: "가장 단순한 구성이라 강하지만, 실제 기능이 필요하면 보호된 개구부를 따로 설계해야 합니다."
   },
   "wbc-vent-one": { shielding: "S", value: "B", build: "C" },
   "honeycomb-one": { shielding: "A", value: "A", build: "B" },
@@ -36,7 +36,7 @@ export const optionGrades: Record<string, OptionGradeSummary> = {
     shielding: "S",
     value: "A",
     build: "A",
-    note: "미션에서 서비스 인입이 필요하면 점수가 달라질 수 있습니다."
+    note: "관통이 없으면 강하지만, 실제 서비스가 필요하면 필터나 광섬유 같은 보호 경로를 따로 설계해야 합니다."
   },
   "single-filtered": { shielding: "A", value: "A", build: "B" },
   "integrated-filter-panel-one": { shielding: "S", value: "B", build: "C" },

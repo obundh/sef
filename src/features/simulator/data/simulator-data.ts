@@ -470,7 +470,7 @@ export const optionLearningNotes: Record<string, { pros: string; cons: string }>
   },
   none: {
     pros: "저장실 같은 시나리오에서는 가장 단순하고 강한 경계가 됩니다.",
-    cons: "서비스를 들여와야 하는 미션에서는 관통부를 따로 설계해야 합니다."
+    cons: "전원이나 통신을 실제로 들여와야 한다면 보호된 관통부를 따로 설계해야 합니다."
   },
   "single-filtered": {
     pros: "전원선이나 금속 신호선을 보호된 방식으로 들이는 기본 관통판 역할을 합니다.",

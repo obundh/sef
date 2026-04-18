@@ -7,6 +7,11 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import {
+  formatKrw,
+  getDesignCostSummary,
+  pricingReference
+} from "@/features/simulator/data/pricing";
+import {
   bondingOptions,
   cableOptions,
   doorOptions,
@@ -16,11 +21,9 @@ import {
   panelJointOptions,
   simulatorSteps
 } from "@/features/simulator/data/simulator-data";
-import { missions } from "@/features/simulator/data/missions";
 import { getVisibleEntryAddonIds } from "@/features/simulator/lib/entry-config";
 import { scoreDesign } from "@/features/simulator/lib/scoring";
 import type {
-  MissionId,
   ScoreBreakdown,
   SimulatorDesign,
   SimulatorStepId,
@@ -39,7 +42,6 @@ import {
 interface ResultPanelProps {
   design: SimulatorDesign;
   activeStep: SimulatorStepId;
-  missionId: MissionId;
 }
 
 const breakdownLabels: Record<keyof ScoreBreakdown, string> = {
@@ -132,24 +134,10 @@ function PerformanceGradeBadge({
   return <Badge className={className}>{`${tier} 등급 · ${label}`}</Badge>;
 }
 
-function MissionStatusBadge({ status }: { status: "pass" | "warn" | "fail" }) {
-  const className =
-    status === "pass"
-      ? "border-emerald-400/30 bg-emerald-500/12 text-emerald-100"
-      : status === "warn"
-        ? "border-amber-400/30 bg-amber-400/12 text-amber-100"
-        : "border-rose-400/30 bg-rose-500/12 text-rose-100";
-
-  const label =
-    status === "pass" ? "미션 성공" : status === "warn" ? "조건 충족, 점수 미달" : "미션 실패";
-
-  return <Badge className={className}>{label}</Badge>;
-}
-
-export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps) {
+export function ResultPanel({ design, activeStep }: ResultPanelProps) {
   const step = simulatorSteps.find((item) => item.id === activeStep) ?? simulatorSteps[0];
-  const result = scoreDesign(design, missionId);
-  const mission = missions[missionId];
+  const result = scoreDesign(design);
+  const costSummary = getDesignCostSummary(design);
   const materialLabel = design.materialId ? materials[design.materialId].label : "미선택";
   const openingLabel = getLabel(openingOptions, design.openingPattern);
   const cableLabel = getEntrySummary(design);
@@ -172,12 +160,12 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
           <div>
             <Badge className="mb-3">{reviewMode ? "최종 결과" : "진행 힌트"}</Badge>
             <CardTitle>
-              {reviewMode ? "학습 점수와 설계 해석" : `${step.shortLabel} 단계 메모`}
+              {reviewMode ? "학습 점수와 비용 분석" : `${step.shortLabel} 단계 메모`}
             </CardTitle>
             <CardDescription>
               {reviewMode
-                ? "이 결과는 실제 인증 판정이 아니라 교육용 추정 결과입니다."
-                : "현재 선택이 어떤 병목을 만들고 있는지 요약해서 보여줍니다."}
+                ? "실제 인증 결과가 아니라 교육용 추정 점수와 교육용 추정 단가입니다."
+                : "현재 선택이 어떤 병목과 비용 구조를 만드는지 요약합니다."}
             </CardDescription>
           </div>
 
@@ -200,22 +188,20 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
         <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
           <div className="mb-2 flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-medium text-white">{mission.title}</div>
-              <div className="text-sm text-slate-400">{mission.summary}</div>
+              <div className="text-sm font-medium text-white">현재 추정 비용</div>
+              <div className="text-sm text-slate-400">{pricingReference.model}</div>
             </div>
-            <MissionStatusBadge status={result.mission.status} />
+            <ValueBadge rating={result.valueAssessment.rating} />
           </div>
 
-          <div className="mb-3 text-sm leading-7 text-slate-300">{result.mission.message}</div>
-          <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2 text-sm text-slate-300">
-            권장 통과선 <span className="font-medium text-white">{result.mission.scoreThreshold}점</span>
-          </div>
+          <div className="text-2xl font-semibold text-white">{formatKrw(costSummary.totalKrw)}</div>
+          <div className="mt-3 text-sm leading-7 text-slate-300">{result.valueAssessment.headline}</div>
         </div>
 
         {!reviewMode ? (
           <>
             <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
-              <div className="text-sm font-medium text-white">현재 단계 요약</div>
+              <div className="text-sm font-medium text-white">현재 설계 요약</div>
               <ul className="mt-3 space-y-2 text-sm text-slate-300">
                 <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
                   벽체: {materialLabel} / 두께 {design.thicknessMm} mm
@@ -239,8 +225,8 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
             </div>
 
             <div className="rounded-3xl border border-amber-400/20 bg-amber-400/8 p-4 text-sm leading-7 text-slate-200">
-              미션은 먼저 필수 조건을 봅니다. 그다음 weakest-link 기반 총점이 권장 통과선을 넘는지
-              확인합니다. 같은 선택이라도 미션이 바뀌면 정답 경로가 달라질 수 있습니다.
+              현재는 예산 상한 없이, 각 선택지를 순수 차폐 성능과 가격 관점에서 비교합니다.
+              나중에 예산 상한을 넣으면 같은 가격 정보로 다시 판정을 붙일 수 있습니다.
             </div>
           </>
         ) : (
@@ -269,7 +255,7 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
 
               <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <div className="text-sm font-medium text-white">가성비 분석</div>
+                  <div className="text-sm font-medium text-white">가격 / 가성비 분석</div>
                   <ValueBadge rating={result.valueAssessment.rating} />
                 </div>
                 <div className="text-sm leading-7 text-slate-300">
@@ -277,13 +263,16 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                 </div>
                 <div className="mt-3 grid gap-2 text-sm text-slate-300">
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    추정 비용 부담 <span className="font-medium text-white">{result.valueAssessment.costIndex}</span>
+                    총 추정 비용 <span className="font-medium text-white">{formatKrw(costSummary.totalKrw)}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    추정 무게 부담 <span className="font-medium text-white">{result.valueAssessment.weightIndex}</span>
+                    비용 지수 <span className="font-medium text-white">{result.valueAssessment.costIndex}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
-                    제작 복잡도 <span className="font-medium text-white">{result.valueAssessment.complexityIndex}</span>
+                    무게 지수 <span className="font-medium text-white">{result.valueAssessment.weightIndex}</span>
+                  </div>
+                  <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    시공 복잡도 <span className="font-medium text-white">{result.valueAssessment.complexityIndex}</span>
                   </div>
                   <div className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
                     가성비 점수 <span className="font-medium text-white">{result.valueAssessment.efficiencyScore}</span>
@@ -293,31 +282,13 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                   {result.valueAssessment.summary}
                 </div>
                 <div className="mt-3 rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-3 text-sm text-slate-300">
-                  <span className="font-medium text-white">가성비 개선 포인트</span>{" "}
+                  <span className="font-medium text-white">가성비 개선 포인트:</span>{" "}
                   {result.valueAssessment.nextMove}
                 </div>
               </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
-                <div className="mb-2 text-sm font-medium text-white">미션 요구 체크</div>
-                <ul className="space-y-2 text-sm text-slate-300">
-                  {result.mission.requirementChecks.map((check) => (
-                    <li
-                      key={check.id}
-                      className={
-                        check.satisfied
-                          ? "rounded-2xl border border-emerald-400/20 bg-emerald-500/8 px-3 py-2 text-emerald-100"
-                          : "rounded-2xl border border-rose-400/20 bg-rose-500/8 px-3 py-2 text-rose-100"
-                      }
-                    >
-                      {check.satisfied ? "충족" : "미충족"} · {check.label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
               <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
                 <div className="mb-2 text-sm font-medium text-white">현재 설계 요약</div>
                 <ul className="space-y-2 text-sm text-slate-300">
@@ -341,6 +312,36 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
                   </li>
                 </ul>
               </div>
+
+              <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
+                <div className="mb-2 text-sm font-medium text-white">단계별 추정 비용</div>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    벽체 재질 <span className="float-right font-medium text-white">{formatKrw(costSummary.wallMaterialKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    두께 추가 <span className="float-right font-medium text-white">{formatKrw(costSummary.thicknessKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    환기 / 개구부 <span className="float-right font-medium text-white">{formatKrw(costSummary.openingKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    관통판 기본 <span className="float-right font-medium text-white">{formatKrw(costSummary.entryBaseKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    서비스 추가 <span className="float-right font-medium text-white">{formatKrw(costSummary.entryAddonsKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    패널 조인트 <span className="float-right font-medium text-white">{formatKrw(costSummary.panelJointKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    출입문 <span className="float-right font-medium text-white">{formatKrw(costSummary.doorKrw)}</span>
+                  </li>
+                  <li className="rounded-2xl border border-white/6 bg-[#0c1a2c] px-3 py-2">
+                    본딩 / 접지 <span className="float-right font-medium text-white">{formatKrw(costSummary.bondingKrw)}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <div className="grid gap-3">
@@ -352,7 +353,7 @@ export function ResultPanel({ design, activeStep, missionId }: ResultPanelProps)
             </div>
 
             <div className="rounded-3xl border border-white/8 bg-[#091425] p-4">
-              <div className="mb-4 text-sm font-medium text-white">주파수 대역별 개념 성능</div>
+              <div className="mb-4 text-sm font-medium text-white">주파수 대역 개념 성능</div>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>

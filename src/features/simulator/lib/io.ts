@@ -1,5 +1,6 @@
 import {
   exportPayloadSchema,
+  previousCurrentExportPayloadSchema,
   missionlessExportPayloadSchema,
   previousExportPayloadSchema,
   olderExportPayloadSchema,
@@ -10,12 +11,11 @@ import {
 } from "@/features/simulator/lib/schema";
 import type { MissionId, SimulatorDesign } from "@/features/simulator/lib/types";
 
-export function exportDesignJson(design: SimulatorDesign, missionId: MissionId) {
+export function exportDesignJson(design: SimulatorDesign) {
   return JSON.stringify(
     {
-      version: 6,
+      version: 7,
       exportedAt: new Date().toISOString(),
-      missionId,
       design
     },
     null,
@@ -23,7 +23,7 @@ export function exportDesignJson(design: SimulatorDesign, missionId: MissionId) 
   );
 }
 
-export function parseDesignJson(json: string): { design: SimulatorDesign; missionId: MissionId } {
+export function parseDesignJson(json: string): { design: SimulatorDesign; missionId?: MissionId } {
   let parsed: unknown;
 
   try {
@@ -36,8 +36,16 @@ export function parseDesignJson(json: string): { design: SimulatorDesign; missio
 
   if (current.success) {
     return {
-      design: current.data.design,
-      missionId: current.data.missionId
+      design: current.data.design
+    };
+  }
+
+  const previousCurrent = previousCurrentExportPayloadSchema.safeParse(parsed);
+
+  if (previousCurrent.success) {
+    return {
+      design: previousCurrent.data.design,
+      missionId: previousCurrent.data.missionId
     };
   }
 

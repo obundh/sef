@@ -48,7 +48,7 @@ export function StepNavigator({ activeStep, onStepChange }: StepNavigatorProps) 
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           {simulatorSteps.map((step, index) => {
             const Icon = iconMap[step.id];
             const isActive = step.id === activeStep;

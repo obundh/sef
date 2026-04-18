@@ -40,7 +40,7 @@ const panels = [
     title: "기준 메모",
     icon: ClipboardList,
     detail:
-      "미션 조건, weakest-link 사고방식, 보호된 개구부와 관통부의 의미를 짧은 요약으로 다시 보는 보조 영역입니다."
+      "weakest-link 사고방식, 보호된 개구부와 관통부의 의미, 예산형 설계 관점을 짧게 다시 보는 보조 영역입니다."
   }
 ] as const;
 
