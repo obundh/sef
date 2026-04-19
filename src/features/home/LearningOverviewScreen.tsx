@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
@@ -397,6 +398,13 @@ export function LearningOverviewScreen({
   onOpenSimulator
 }: LearningOverviewScreenProps) {
   const reviewStep = getStep("review");
+  const [activeTab, setActiveTab] = useState<string>("intro");
+
+  const tabList = [
+    { id: "intro", label: "기본 안내" },
+    ...sections.map((s) => ({ id: s.id, label: s.title })),
+    { id: "review", label: "7단계. 최종 검토" }
+  ];
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[1400px] flex-col px-4 py-6 lg:px-6">
@@ -430,6 +438,30 @@ export function LearningOverviewScreen({
       </header>
 
       <main className="space-y-4">
+        <div className="flex flex-wrap gap-2 mb-6 p-4 rounded-[20px] border border-[var(--border)] bg-[var(--card)]/50 shadow-panel backdrop-blur">
+          {tabList.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`cyber-clip px-4 py-2.5 text-sm font-bold tracking-wider uppercase transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "border-l-[3px] border-[var(--primary)] bg-[var(--primary)]/15 text-[var(--primary)] shadow-[0_0_10px_rgba(0,212,255,0.2)]"
+                  : "border-l-[3px] border-[var(--border)] bg-[var(--muted)]/30 text-[var(--muted-foreground)] hover:border-[var(--primary)]/50 hover:text-[var(--primary)] hover:bg-[var(--primary)]/5"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "intro" && (
+          <motion.div
+            key="intro"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
         <Card>
           <CardHeader>
             <CardTitle>점수 체계</CardTitle>
@@ -556,8 +588,11 @@ export function LearningOverviewScreen({
             </div>
           </CardContent>
         </Card>
+        </motion.div>
+        )}
 
         {sections.map((section) => (
+          activeTab === section.id && (
           <motion.section
             key={section.id}
             initial={{ opacity: 0, y: 10 }}
@@ -601,8 +636,16 @@ export function LearningOverviewScreen({
               </CardContent>
             </Card>
           </motion.section>
+          )
         ))}
 
+        {activeTab === "review" && (
+          <motion.div
+            key="review"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
         <Card>
           <CardHeader>
             <CardTitle>7단계. 최종 검토</CardTitle>
@@ -622,6 +665,8 @@ export function LearningOverviewScreen({
             ))}
           </CardContent>
         </Card>
+        </motion.div>
+        )}
       </main>
     </div>
   );

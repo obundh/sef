@@ -5,7 +5,8 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-white/10 bg-[var(--card)]/90 shadow-panel backdrop-blur",
+        "cyber-clip border-l-2 border-r-2 border-[var(--primary)] bg-[var(--card)]/90 shadow-panel backdrop-blur relative overflow-hidden",
+        "before:absolute before:inset-0 before:border before:border-[var(--border)] before:pointer-events-none",
         className
       )}
       {...props}
@@ -17,14 +18,14 @@ export function CardHeader({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-6 pb-0", className)} {...props} />;
+  return <div className={cn("p-6 pb-2 border-b border-[var(--border)] bg-[var(--muted)]/50", className)} {...props} />;
 }
 
 export function CardTitle({
   className,
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h2 className={cn("text-xl font-semibold text-white", className)} {...props} />;
+  return <h2 className={cn("text-xl font-orbitron font-bold text-[var(--primary)] tracking-widest uppercase", className)} {...props} />;
 }
 
 export function CardDescription({
@@ -32,7 +33,7 @@ export function CardDescription({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-sm leading-6 text-slate-400", className)} {...props} />
+    <p className={cn("text-sm font-semibold tracking-wider text-[var(--primary)]/70 uppercase", className)} {...props} />
   );
 }
 

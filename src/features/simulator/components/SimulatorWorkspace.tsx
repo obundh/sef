@@ -92,7 +92,7 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
         onChange={handleImport}
       />
 
-      <header className="mb-4 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-[var(--card)]/90 px-4 py-4 shadow-panel sm:px-6 sm:py-6 xl:flex-row xl:items-center xl:justify-between">
+      <header className="mb-4 flex flex-col gap-4 cyber-clip border-l-2 border-r-2 border-[var(--primary)] bg-[var(--card)]/90 px-4 py-4 shadow-panel sm:px-6 sm:py-6 xl:flex-row xl:items-center xl:justify-between relative before:absolute before:inset-0 before:border before:border-[var(--border)] before:pointer-events-none">
         <div className="flex items-start gap-3 sm:gap-4">
           <Button
             variant="secondary"
@@ -105,14 +105,14 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
           </Button>
 
           <div className="min-w-0">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-              <Shield className="h-3.5 w-3.5 text-[var(--primary)]" />
+            <div className="mb-2 inline-flex items-center gap-2 cyber-clip border-l-[3px] border-[var(--primary)] bg-[var(--primary)]/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-[var(--primary)]">
+              <Shield className="h-3.5 w-3.5" />
               교육용 EMP 차폐실 설계 시뮬레이터
             </div>
-            <h1 className="text-xl font-semibold text-white sm:text-2xl lg:text-3xl">
+            <h1 className="text-xl font-orbitron font-bold text-[var(--foreground)] sm:text-2xl lg:text-3xl tracking-wider">
               차폐실 제작 과정을 단계별로 비교
             </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:leading-7">
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-[var(--foreground)]/70 sm:leading-7">
               지금은 예산과 차폐 성능을 같이 봅니다. 각 선택지는 2026년 4월 기준
               금속 시세와 대표 EMI 부품 가격을 바탕으로 만든 교육용 추정 단가가 붙어 있습니다.
             </p>
@@ -133,8 +133,8 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-semibold text-white">{formatKrw(costSummary.totalKrw)}</div>
-              <div className="mt-2 text-sm leading-6 text-slate-300">{result.riskHeadline}</div>
+              <div className="text-2xl font-orbitron font-bold text-[var(--accent)] drop-shadow-[0_0_8px_var(--accent)]">{formatKrw(costSummary.totalKrw)}</div>
+              <div className="mt-2 text-sm font-semibold tracking-wide text-[var(--primary)]/80 uppercase">{result.riskHeadline}</div>
             </CardContent>
           </Card>
         </div>
@@ -172,7 +172,7 @@ export function SimulatorWorkspace({ onBackHome }: SimulatorWorkspaceProps) {
         <div className="order-4 lg:col-span-12 xl:col-span-3">
           <Suspense
             fallback={
-              <div className="rounded-[28px] border border-white/10 bg-[var(--card)]/90 p-6 text-sm text-slate-300 shadow-panel">
+              <div className="cyber-clip border-l-2 border-[var(--primary)] bg-[var(--card)]/90 p-6 text-sm font-bold uppercase tracking-widest text-[var(--primary)] shadow-panel">
                 결과 패널을 불러오는 중입니다.
               </div>
             }

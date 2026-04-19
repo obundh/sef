@@ -60,35 +60,35 @@ export function StepNavigator({ activeStep, onStepChange }: StepNavigatorProps) 
                 type="button"
                 onClick={() => onStepChange(step.id)}
                 className={cn(
-                  "flex min-h-[84px] items-center gap-3 rounded-2xl border px-3 py-3 text-left transition xl:w-full",
+                  "group flex min-h-[84px] items-center gap-3 cyber-clip border-l-2 px-3 py-3 text-left transition-all duration-200 xl:w-full",
                   isActive
-                    ? "border-[var(--primary)]/40 bg-[var(--primary)]/10"
-                    : "border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/7"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/15 shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                    : "border-[var(--border)] bg-[var(--card)]/50 hover:border-[var(--primary)]/50 hover:bg-[var(--primary)]/5"
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+                    "flex h-10 w-10 shrink-0 items-center justify-center border",
                     isActive
-                      ? "border-[var(--primary)]/40 bg-[#0a1823]"
-                      : "border-white/10 bg-[#081121]",
-                    isComplete && !isActive ? "border-emerald-400/30 bg-emerald-500/8" : ""
+                      ? "border-[var(--primary)] bg-[var(--primary)]/20 shadow-[inset_0_0_10px_rgba(0,240,255,0.4)]"
+                      : "border-[var(--border)] bg-[var(--muted)]/50 group-hover:border-[var(--primary)]/50",
+                    isComplete && !isActive ? "border-[var(--success)]/40 bg-[var(--success)]/10" : ""
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-4.5 w-4.5",
-                      isActive ? "text-[var(--primary)]" : "text-slate-300",
-                      isComplete && !isActive ? "text-emerald-300" : ""
+                      isActive ? "text-[var(--primary)] drop-shadow-[0_0_5px_var(--primary)]" : "text-[var(--muted-foreground)] group-hover:text-[var(--primary)]/70",
+                      isComplete && !isActive ? "text-[var(--success)]" : ""
                     )}
                   />
                 </div>
 
                 <div className="min-w-0">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                  <div className="text-[11px] uppercase tracking-[0.2em] font-orbitron text-[var(--muted-foreground)] group-hover:text-[var(--primary)]/70">
                     Step {index + 1}
                   </div>
-                  <div className="whitespace-normal text-[13px] font-medium leading-5 text-white sm:text-sm">
+                  <div className="whitespace-normal text-[13px] font-bold tracking-wider leading-5 text-[var(--foreground)] sm:text-sm group-hover:text-[var(--primary)]">
                     {step.shortLabel}
                   </div>
                 </div>
